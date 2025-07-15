@@ -9,5 +9,4 @@ version = "1.0.0"
 edition = "2024"
 
 [dependencies]
-rust-ext = { path = "../rust-ext", features = ["constants"] }
 gxhash = "3.5.0"

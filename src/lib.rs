@@ -1,4 +1,4 @@
-#![feature(never_type, trait_alias)]
+#![feature(never_type)]
 
 pub mod input;
 pub mod interner;
