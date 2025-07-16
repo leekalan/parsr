@@ -17,7 +17,7 @@ impl<F: Fn(char) -> bool> TrimUntil<F> {
 
 impl<F: Fn(char) -> bool> Trim for TrimUntil<F> {
     #[inline(always)]
-    fn trim<I: Input>(self, input: &mut I) -> input::Result<()> {
+    fn trim<I: ?Sized + Input>(self, input: &mut I) -> input::Result<()> {
         input.consume_until(8, self.func)
     }
 }
@@ -26,7 +26,7 @@ impl<F: Fn(char) -> bool> Trim for TrimUntil<F> {
 pub struct TrimWhitespace;
 impl Trim for TrimWhitespace {
     #[inline(always)]
-    fn trim<I: Input>(self, input: &mut I) -> input::Result<()> {
+    fn trim<I: ?Sized + Input>(self, input: &mut I) -> input::Result<()> {
         input.consume_until(8, |c| !c.is_whitespace())
     }
 }

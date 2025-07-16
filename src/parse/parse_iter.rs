@@ -25,13 +25,13 @@ impl<E> ParseIterError<E> {
 }
 
 #[derive(Debug)]
-pub struct ParseIter<'a, I: Input, T: Trim, P: Parse> {
+pub struct ParseIter<'a, I: ?Sized + Input, T: Trim, P: Parse> {
     input: &'a mut I,
     trimmer: T,
     parser: P,
 }
 
-impl<'a, I: Input, T: Trim + Clone, P: Parse> ParseIter<'a, I, T, P> {
+impl<'a, I: ?Sized + Input, T: Trim + Clone, P: Parse> ParseIter<'a, I, T, P> {
     #[inline(always)]
     pub fn new(input: &'a mut I, trimmer: T, parser: P) -> Result<Self, InvalidUtf8> {
         if let Err(ReadError::InvalidUtf8(err)) = trimmer.clone().trim(input) {
@@ -46,8 +46,14 @@ impl<'a, I: Input, T: Trim + Clone, P: Parse> ParseIter<'a, I, T, P> {
     }
 }
 
-impl<'a, I: Input, T: Trim + Clone, P: for<'s> IsParse<'s, Output = O, Error = E> + Clone, O, E>
-    Iterator for ParseIter<'a, I, T, P>
+impl<
+    'a,
+    I: ?Sized + Input,
+    T: Trim + Clone,
+    P: for<'s> IsParse<'s, Output = O, Error = E> + Clone,
+    O,
+    E,
+> Iterator for ParseIter<'a, I, T, P>
 {
     type Item = Result<O, ParseIterError<E>>;
 

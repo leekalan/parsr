@@ -5,7 +5,7 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct ParseMutIter<'a, 'p, I: Input, T: Trim, P>
+pub struct ParseMutIter<'a, 'p, I: ?Sized + Input, T: Trim, P>
 where
     for<'s> &'s mut P: Parse,
 {
@@ -14,7 +14,7 @@ where
     parser: &'p mut P,
 }
 
-impl<'a, 'p, I: Input, T: Trim + Clone, P> ParseMutIter<'a, 'p, I, T, P>
+impl<'a, 'p, I: ?Sized + Input, T: Trim + Clone, P> ParseMutIter<'a, 'p, I, T, P>
 where
     for<'s> &'s mut P: Parse,
 {
@@ -32,7 +32,7 @@ where
     }
 }
 
-impl<'a, 'p, I: Input, T: Trim + Clone, P, O, E> Iterator for ParseMutIter<'a, 'p, I, T, P>
+impl<'a, 'p, I: ?Sized + Input, T: Trim + Clone, P, O, E> Iterator for ParseMutIter<'a, 'p, I, T, P>
 where
     for<'s, 'k> &'s mut P: IsParse<'k, Output = O, Error = E>,
 {

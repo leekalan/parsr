@@ -19,7 +19,10 @@ impl<'a, F: Fn(char) -> bool> IsParse<'a> for SplitUpTo<F> {
     type Output = &'a str;
     type Error = !;
 
-    fn __parse<I: Input>(self, input: &'a mut I) -> Result<Self::Output, ParseError<Self::Error>> {
+    fn __parse<I: ?Sized + Input>(
+        self,
+        input: &'a mut I,
+    ) -> Result<Self::Output, ParseError<Self::Error>> {
         input
             .read_until(8, self.func)
             .map_err(ParseError::ReadError)

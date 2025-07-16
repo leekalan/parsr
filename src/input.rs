@@ -1,5 +1,6 @@
 use std::result;
 
+mod default;
 mod reader_input;
 mod str_view;
 
@@ -40,62 +41,22 @@ pub trait Input {
     /// Will read at least n - 3 bytes of data depending on char boundaries
     #[inline(always)]
     fn read_at_least(&mut self, n: usize) -> Result<&str> {
-        self.buffer_at_least(n).map(|_| self.read())
+        default::default_read_at_least(self, n)
     }
 
+    #[inline(always)]
     fn consume_until(&mut self, chunk_size: usize, func: impl Fn(char) -> bool) -> Result<()> {
-        loop {
-            if self.is_eof() {
-                return Err(ReadError::EOF);
-            }
-
-            if let Result::Err(ReadError::InvalidUtf8(err)) = self.buffer_at_least(chunk_size) {
-                return Err(ReadError::InvalidUtf8(err));
-            };
-
-            let read = self.read();
-
-            for (i, c) in read.char_indices() {
-                if func(c) {
-                    unsafe { self.consume(i) };
-                    return Ok(());
-                }
-            }
-
-            unsafe { self.consume(read.len()) };
-        }
+        default::default_consume_until(self, chunk_size, func)
     }
 
+    #[inline(always)]
     fn read_until(&mut self, chunk_size: usize, func: impl Fn(char) -> bool) -> Result<&str> {
-        let mut count = 0;
-
-        loop {
-            if self.is_eof() {
-                return Err(ReadError::EOF);
-            }
-
-            if let Result::Err(ReadError::InvalidUtf8(err)) = self.buffer_at_least(chunk_size) {
-                return Err(ReadError::InvalidUtf8(err));
-            };
-
-            let read = self.read();
-
-            for (i, c) in read.char_indices() {
-                if func(c) {
-                    let s = unsafe { str::from_utf8_unchecked(self.get_unchecked(count + i)) };
-
-                    return Ok(s);
-                }
-            }
-
-            count += read.len();
-        }
+        default::default_read_until(self, chunk_size, func)
     }
 
     #[inline(always)]
     fn peek(&mut self) -> Result<char> {
-        self.read_at_least(4)
-            .map(|s| unsafe { s.chars().next().unwrap_unchecked() })
+        default::default_peek(self)
     }
 }
 
