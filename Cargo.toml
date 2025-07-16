@@ -9,5 +9,5 @@ version = "1.0.2"
 edition = "2024"
 
 [dependencies]
-token-precedence = { path = "token" }
+token-precedence = { path = "token", version = "1.0.0" }
 gxhash = "3.5.0"
