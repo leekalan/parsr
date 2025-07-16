@@ -7,3 +7,5 @@ pub mod parse;
 pub mod trim;
 
 pub mod core;
+
+pub use token_precedence as token;
