@@ -1,6 +1,7 @@
-use std::io;
-
-use crate::{input, trim::Trim};
+use crate::{
+    input::{self, Input},
+    trim::Trim,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TrimUntil<F: Fn(char) -> bool> {
@@ -16,7 +17,7 @@ impl<F: Fn(char) -> bool> TrimUntil<F> {
 
 impl<F: Fn(char) -> bool> Trim for TrimUntil<F> {
     #[inline(always)]
-    fn trim<R: io::Read>(self, input: &mut crate::input::Input<R>) -> input::Result<()> {
+    fn trim<I: Input>(self, input: &mut I) -> input::Result<()> {
         input.consume_until(8, self.func)
     }
 }
@@ -25,7 +26,7 @@ impl<F: Fn(char) -> bool> Trim for TrimUntil<F> {
 pub struct TrimWhitespace;
 impl Trim for TrimWhitespace {
     #[inline(always)]
-    fn trim<R: io::Read>(self, input: &mut crate::input::Input<R>) -> input::Result<()> {
+    fn trim<I: Input>(self, input: &mut I) -> input::Result<()> {
         input.consume_until(8, |c| !c.is_whitespace())
     }
 }

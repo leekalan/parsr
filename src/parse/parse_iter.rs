@@ -1,5 +1,3 @@
-use std::io;
-
 use crate::{
     input::{Input, InvalidUtf8, ReadError},
     parse::{IsParse, Parse, ParseError},
@@ -27,15 +25,15 @@ impl<E> ParseIterError<E> {
 }
 
 #[derive(Debug)]
-pub struct ParseIter<'a, R: io::Read, T: Trim, P: Parse> {
-    input: &'a mut Input<R>,
+pub struct ParseIter<'a, I: Input, T: Trim, P: Parse> {
+    input: &'a mut I,
     trimmer: T,
     parser: P,
 }
 
-impl<'a, R: io::Read, T: Trim + Clone, P: Parse> ParseIter<'a, R, T, P> {
+impl<'a, I: Input, T: Trim + Clone, P: Parse> ParseIter<'a, I, T, P> {
     #[inline(always)]
-    pub fn new(input: &'a mut Input<R>, trimmer: T, parser: P) -> Result<Self, InvalidUtf8> {
+    pub fn new(input: &'a mut I, trimmer: T, parser: P) -> Result<Self, InvalidUtf8> {
         if let Err(ReadError::InvalidUtf8(err)) = trimmer.clone().trim(input) {
             return Err(err);
         }
@@ -48,8 +46,8 @@ impl<'a, R: io::Read, T: Trim + Clone, P: Parse> ParseIter<'a, R, T, P> {
     }
 }
 
-impl<'a, R: io::Read, T: Trim + Clone, P: for<'s> IsParse<'s, Output = O, Error = E> + Clone, O, E>
-    Iterator for ParseIter<'a, R, T, P>
+impl<'a, I: Input, T: Trim + Clone, P: for<'s> IsParse<'s, Output = O, Error = E> + Clone, O, E>
+    Iterator for ParseIter<'a, I, T, P>
 {
     type Item = Result<O, ParseIterError<E>>;
 

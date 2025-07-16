@@ -1,5 +1,3 @@
-use std::io;
-
 use crate::input::{Input, ReadError};
 
 mod parse_iter;
@@ -31,17 +29,14 @@ pub trait IsParse<'a> {
     type Output;
     type Error;
 
-    fn __parse<R: io::Read>(
-        self,
-        input: &'a mut Input<R>,
-    ) -> Result<Self::Output, ParseError<Self::Error>>;
+    fn __parse<I: Input>(self, input: &'a mut I) -> Result<Self::Output, ParseError<Self::Error>>;
 }
 
 pub trait Parse: for<'a> IsParse<'a> + Sized {
     #[inline(always)]
-    fn parse<'a, R: io::Read>(
+    fn parse<'a, I: Input>(
         self,
-        input: &'a mut Input<R>,
+        input: &'a mut I,
     ) -> Result<ParseOutput<'a, Self>, ParseError<ParseErrorOutput<'a, Self>>> {
         self.__parse(input)
     }
@@ -106,10 +101,7 @@ impl<'a, P: Parse, M: Mapping<P>> IsParse<'a> for MappedParse<P, M> {
     type Error = ParseErrorOutput<'a, P>;
 
     #[inline(always)]
-    fn __parse<R: io::Read>(
-        self,
-        input: &'a mut Input<R>,
-    ) -> Result<Self::Output, ParseError<Self::Error>> {
+    fn __parse<I: Input>(self, input: &'a mut I) -> Result<Self::Output, ParseError<Self::Error>> {
         self.parse
             .parse(input)
             .map(|output| self.mapping.map(output))
@@ -152,9 +144,9 @@ impl<'a, P: Parse, M: MappingMut<P>> IsParse<'a> for MappedMutParse<P, M> {
     type Error = ParseErrorOutput<'a, P>;
 
     #[inline(always)]
-    fn __parse<R: io::Read>(
+    fn __parse<I: Input>(
         mut self,
-        input: &'a mut Input<R>,
+        input: &'a mut I,
     ) -> Result<Self::Output, ParseError<Self::Error>> {
         self.parse
             .parse(input)
@@ -167,10 +159,7 @@ impl<'a, P: Parse + Clone, M: MappingMut<P>> IsParse<'a> for &mut MappedMutParse
     type Error = ParseErrorOutput<'a, P>;
 
     #[inline(always)]
-    fn __parse<R: io::Read>(
-        self,
-        input: &'a mut Input<R>,
-    ) -> Result<Self::Output, ParseError<Self::Error>> {
+    fn __parse<I: Input>(self, input: &'a mut I) -> Result<Self::Output, ParseError<Self::Error>> {
         self.parse
             .clone()
             .parse(input)
@@ -180,16 +169,14 @@ impl<'a, P: Parse + Clone, M: MappingMut<P>> IsParse<'a> for &mut MappedMutParse
 
 #[cfg(test)]
 mod tests {
-    use std::io;
-
     use crate::{
         core::{parse::SplitUpTo, trim::TrimWhitespace},
-        input,
+        input::Input,
         parse::{ParseExt, ParseIter, ParseMutIter},
     };
 
     #[allow(unused)]
-    fn test_iter_typing<R: io::Read>(input: &mut input::Input<R>) {
+    fn test_iter_typing<I: Input>(input: &mut I) {
         let mapped = SplitUpTo::new(|c| !char::is_whitespace(c)).mapped(|s: &str| s.to_string());
 
         for i in ParseIter::new(input, TrimWhitespace, mapped).unwrap() {
@@ -198,7 +185,7 @@ mod tests {
     }
 
     #[allow(unused)]
-    fn test_iter_mut_typing<R: io::Read>(input: &mut input::Input<R>) {
+    fn test_iter_mut_typing<I: Input>(input: &mut I) {
         let mut total_len = 0u32;
 
         let parser = SplitUpTo::new(|c| !char::is_whitespace(c));

@@ -1,5 +1,3 @@
-use std::io;
-
 use crate::{
     input::{Input, InvalidUtf8, ReadError},
     parse::{IsParse, Parse, ParseError, ParseIterError},
@@ -7,25 +5,21 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct ParseMutIter<'a, 'p, R: io::Read, T: Trim, P>
+pub struct ParseMutIter<'a, 'p, I: Input, T: Trim, P>
 where
     for<'s> &'s mut P: Parse,
 {
-    input: &'a mut Input<R>,
+    input: &'a mut I,
     trimmer: T,
     parser: &'p mut P,
 }
 
-impl<'a, 'p, R: io::Read, T: Trim + Clone, P> ParseMutIter<'a, 'p, R, T, P>
+impl<'a, 'p, I: Input, T: Trim + Clone, P> ParseMutIter<'a, 'p, I, T, P>
 where
     for<'s> &'s mut P: Parse,
 {
     #[inline(always)]
-    pub fn new(
-        input: &'a mut Input<R>,
-        trimmer: T,
-        parser: &'p mut P,
-    ) -> Result<Self, InvalidUtf8> {
+    pub fn new(input: &'a mut I, trimmer: T, parser: &'p mut P) -> Result<Self, InvalidUtf8> {
         if let Err(ReadError::InvalidUtf8(err)) = trimmer.clone().trim(input) {
             return Err(err);
         }
@@ -38,7 +32,7 @@ where
     }
 }
 
-impl<'a, 'p, R: io::Read, T: Trim + Clone, P, O, E> Iterator for ParseMutIter<'a, 'p, R, T, P>
+impl<'a, 'p, I: Input, T: Trim + Clone, P, O, E> Iterator for ParseMutIter<'a, 'p, I, T, P>
 where
     for<'s, 'k> &'s mut P: IsParse<'k, Output = O, Error = E>,
 {
