@@ -16,6 +16,7 @@ name = "parsr"
 version = "1.0.1"
 dependencies = [
  "gxhash",
+ "token-precedence",
 ]
 
 [[package]]
