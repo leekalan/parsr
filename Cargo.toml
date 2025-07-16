@@ -5,7 +5,7 @@ members = ["token"]
 name = "parsr"
 description = "a libary for simple parsing"
 license = "MIT OR Apache-2.0"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2024"
 
 [dependencies]
