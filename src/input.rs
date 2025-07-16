@@ -1,8 +1,12 @@
 use std::result;
 
 mod default;
+mod entry;
+
 mod reader_input;
 mod str_view;
+
+pub use entry::{CharEntry, Entry, InputExt};
 
 pub use reader_input::ReaderInput;
 pub use str_view::StrView;
@@ -22,23 +26,35 @@ pub struct InvalidUtf8 {
 
 pub type Result<T> = result::Result<T, ReadError>;
 
+impl From<InvalidUtf8> for ReadError {
+    #[inline(always)]
+    fn from(value: InvalidUtf8) -> Self {
+        Self::InvalidUtf8(value)
+    }
+}
+
+/// # Input
+/// It is recomended to
 pub trait Input {
     /// # Safety
-    /// n must not exceed the length of currently buffered data
-    /// (this is more default trait function and should not be used)
+    /// `n` must not exceed the length of currently buffered data
+    /// (this is for default trait functions and should not be used).
     unsafe fn get_unchecked(&self, n: usize) -> &[u8];
     fn index(&self) -> usize;
     fn read(&self) -> &str;
-    /// Will buffer at least n - 3 bytes of data depending on char boundaries
+    /// Will buffer at least `n - 3` bytes of data depending on char boundaries.
     fn buffer_at_least(&mut self, n: usize) -> Result<()>;
     fn set_eof(&mut self);
     fn is_eof(&self) -> bool;
     /// # Safety
-    /// n must not exceed the length of currently buffered data
-    /// and must offset the input to an existing char boundary
+    /// `n` must not exceed the length of currently buffered data
+    /// and must offset the input to an existing char boundary.
+    ///
+    /// # Note
+    /// Try to use the entry system within `InputExt` instead to avoid unsafe code.
     unsafe fn consume(&mut self, n: usize);
 
-    /// Will read at least n - 3 bytes of data depending on char boundaries
+    /// Will read at least `n - 3` bytes of data depending on char boundaries
     #[inline(always)]
     fn read_at_least(&mut self, n: usize) -> Result<&str> {
         default::default_read_at_least(self, n)
@@ -49,11 +65,15 @@ pub trait Input {
         default::default_consume_until(self, chunk_size, func)
     }
 
+    /// # Note
+    /// Use `InputExt::read_until_entry` instead if you plan to consume the whole string slice
     #[inline(always)]
     fn read_until(&mut self, chunk_size: usize, func: impl Fn(char) -> bool) -> Result<&str> {
         default::default_read_until(self, chunk_size, func)
     }
 
+    /// # Note
+    /// Use `InputExt::peek_entry` instead if you plan to consume the char
     #[inline(always)]
     fn peek(&mut self) -> Result<char> {
         default::default_peek(self)
