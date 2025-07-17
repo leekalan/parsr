@@ -38,6 +38,7 @@ pub trait InputExt: Input {
         })
     }
 }
+impl<I: ?Sized + Input> InputExt for I {}
 
 pub struct CharEntry<'a, I: ?Sized + Input> {
     input: &'a mut I,
