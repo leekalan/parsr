@@ -1,5 +1,5 @@
 use crate::{
-    input::{self, Input},
+    input::{self, Input, InputExt},
     trim::Trim,
 };
 

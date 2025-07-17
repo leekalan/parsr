@@ -1,5 +1,5 @@
 use crate::{
-    input::Input,
+    input::{Entry, Input, InputExt},
     parse::{IsParse, ParseError},
 };
 
@@ -16,7 +16,7 @@ impl<F: Fn(char) -> bool> SplitUpTo<F> {
 }
 
 impl<'a, F: Fn(char) -> bool> IsParse<'a> for SplitUpTo<F> {
-    type Output = &'a str;
+    type Output = Entry<'a, dyn Input + 'a>;
     type Error = !;
 
     fn __parse<I: ?Sized + Input>(
@@ -24,7 +24,8 @@ impl<'a, F: Fn(char) -> bool> IsParse<'a> for SplitUpTo<F> {
         input: &'a mut I,
     ) -> Result<Self::Output, ParseError<Self::Error>> {
         input
-            .read_until(8, self.func)
+            .read_until_entry(8, self.func)
             .map_err(ParseError::ReadError)
+            .map(Entry::unsize)
     }
 }

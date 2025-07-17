@@ -57,4 +57,9 @@ impl<'a> Input for StrView<'a> {
     fn peek(&mut self) -> Result<char> {
         self.data.chars().next().ok_or(ReadError::EOF)
     }
+
+    #[inline(always)]
+    fn trait_obj(&mut self) -> &mut dyn Input {
+        self
+    }
 }

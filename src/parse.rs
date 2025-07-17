@@ -180,13 +180,17 @@ impl<'a, P: Parse + Clone, M: MappingMut<P>> IsParse<'a> for &mut MappedMutParse
 mod tests {
     use crate::{
         core::{parse::SplitUpTo, trim::TrimWhitespace},
-        input::Input,
+        input::{Entry, Input},
         parse::{ParseExt, ParseIter, ParseMutIter},
     };
 
     #[allow(unused)]
     fn test_iter_typing<I: ?Sized + Input>(input: &mut I) {
-        let mapped = SplitUpTo::new(|c| !char::is_whitespace(c)).mapped(|s: &str| s.to_string());
+        let mapped = SplitUpTo::new(|c| !char::is_whitespace(c)).mapped(|mut entry: Entry| {
+            let ret = entry.get().to_string();
+            entry.consume();
+            ret
+        });
 
         for i in ParseIter::new(input, TrimWhitespace, mapped).unwrap() {
             println!("{}", i.unwrap());
@@ -199,9 +203,11 @@ mod tests {
 
         let parser = SplitUpTo::new(|c| !char::is_whitespace(c));
 
-        let mut mapped = parser.mapped_mut(|s: &str| {
-            total_len += s.len() as u32;
-            s.contains('!')
+        let mut mapped = parser.mapped_mut(|mut entry: Entry| {
+            total_len += entry.get().len() as u32;
+            let ret = entry.get().contains('!');
+            entry.consume();
+            ret
         });
 
         for i in ParseMutIter::new(input, TrimWhitespace, &mut mapped).unwrap() {

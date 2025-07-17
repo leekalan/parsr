@@ -148,4 +148,9 @@ impl<R: io::Read, const N: usize> Input for ReaderInput<R, N> {
     fn is_eof(&self) -> bool {
         self.index == EOF_INDEX
     }
+
+    #[inline(always)]
+    fn trait_obj(&mut self) -> &mut dyn Input {
+        self
+    }
 }

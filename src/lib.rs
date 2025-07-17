@@ -1,4 +1,4 @@
-#![feature(never_type)]
+#![feature(never_type, coerce_unsized)]
 
 pub mod input;
 pub mod interner;

@@ -60,24 +60,14 @@ pub trait Input {
         default::default_read_at_least(self, n)
     }
 
-    #[inline(always)]
-    fn consume_until(&mut self, chunk_size: usize, func: impl Fn(char) -> bool) -> Result<()> {
-        default::default_consume_until(self, chunk_size, func)
-    }
-
-    /// # Note
-    /// Use `InputExt::read_until_entry` instead if you plan to consume the whole string slice
-    #[inline(always)]
-    fn read_until(&mut self, chunk_size: usize, func: impl Fn(char) -> bool) -> Result<&str> {
-        default::default_read_until(self, chunk_size, func)
-    }
-
     /// # Note
     /// Use `InputExt::peek_entry` instead if you plan to consume the char
     #[inline(always)]
     fn peek(&mut self) -> Result<char> {
         default::default_peek(self)
     }
+
+    fn trait_obj(&mut self) -> &mut dyn Input;
 }
 
 #[cfg(test)]
