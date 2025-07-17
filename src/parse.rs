@@ -11,12 +11,22 @@ pub enum ParseError<E> {
     Error(E),
 }
 
+impl ParseError<!> {
+    #[inline(always)]
+    pub fn unwrap_infallible(self) -> ReadError {
+        match self {
+            ParseError::ReadError(err) => err,
+        }
+    }
+}
+
 impl<E> From<ReadError> for ParseError<E> {
     #[inline(always)]
     fn from(value: ReadError) -> Self {
         ParseError::ReadError(value)
     }
 }
+
 
 impl<E> ParseError<E> {
     #[inline(always)]
