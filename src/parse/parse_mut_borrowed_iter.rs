@@ -5,21 +5,21 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct ParseMutIter<'a, I: ?Sized + Input, T: Trim, P>
+pub struct ParseMutBorrowedIter<'a, 'p, I: ?Sized + Input, T: Trim, P>
 where
     for<'s> &'s mut P: Parse,
 {
     input: &'a mut I,
     trimmer: T,
-    parser: P,
+    parser: &'p mut P,
 }
 
-impl<'a, I: ?Sized + Input, T: Trim + Clone, P> ParseMutIter<'a, I, T, P>
+impl<'a, 'p, I: ?Sized + Input, T: Trim + Clone, P> ParseMutBorrowedIter<'a, 'p, I, T, P>
 where
     for<'s> &'s mut P: Parse,
 {
     #[inline(always)]
-    pub fn new(input: &'a mut I, trimmer: T, parser: P) -> Result<Self, InvalidUtf8> {
+    pub fn new(input: &'a mut I, trimmer: T, parser: &'p mut P) -> Result<Self, InvalidUtf8> {
         if let Err(ReadError::InvalidUtf8(err)) = trimmer.clone().trim(input) {
             return Err(err);
         }
@@ -32,7 +32,8 @@ where
     }
 }
 
-impl<'a, I: ?Sized + Input, T: Trim + Clone, P, O, E> Iterator for ParseMutIter<'a, I, T, P>
+impl<'a, 'p, I: ?Sized + Input, T: Trim + Clone, P, O, E> Iterator
+    for ParseMutBorrowedIter<'a, 'p, I, T, P>
 where
     for<'s, 'k> &'s mut P: IsParse<'k, Output = O, Error = E>,
 {

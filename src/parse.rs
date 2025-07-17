@@ -1,8 +1,10 @@
 use crate::input::{Input, ReadError};
 
 mod parse_iter;
+mod parse_mut_borrowed_iter;
 mod parse_mut_iter;
 pub use parse_iter::{ParseIter, ParseIterError};
+pub use parse_mut_borrowed_iter::ParseMutBorrowedIter;
 pub use parse_mut_iter::ParseMutIter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -26,7 +28,6 @@ impl<E> From<ReadError> for ParseError<E> {
         ParseError::ReadError(value)
     }
 }
-
 
 impl<E> ParseError<E> {
     #[inline(always)]
@@ -213,14 +214,14 @@ mod tests {
 
         let parser = SplitUpTo::new(|c| !char::is_whitespace(c));
 
-        let mut mapped = parser.mapped_mut(|mut entry: Entry| {
+        let mapped = parser.mapped_mut(|mut entry: Entry| {
             total_len += entry.get().len() as u32;
             let ret = entry.get().contains('!');
             entry.consume();
             ret
         });
 
-        for i in ParseMutIter::new(input, TrimWhitespace, &mut mapped).unwrap() {
+        for i in ParseMutIter::new(input, TrimWhitespace, mapped).unwrap() {
             println!("{}", i.unwrap());
         }
     }
