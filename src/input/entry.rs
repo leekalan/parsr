@@ -66,7 +66,7 @@ impl<'a, I: ?Sized + Input> CharEntry<'a, I> {
     }
 
     #[inline(always)]
-    pub const fn get(&mut self) -> char {
+    pub const fn get(&self) -> char {
         self.character
     }
 
@@ -99,7 +99,7 @@ impl<'a, I: ?Sized + Input> Entry<'a, I> {
     }
 
     #[inline(always)]
-    pub fn get(&mut self) -> &str {
+    pub fn get(&self) -> &str {
         unsafe { str::from_utf8_unchecked(self.input.get_unchecked(self.size)) }
     }
 
