@@ -10,14 +10,22 @@ pub(super) fn default_consume_until<I: ?Sized + Input>(
     chunk_size: usize,
     func: impl Fn(char) -> bool,
 ) -> Result<()> {
-    loop {
-        if input.is_eof() {
-            return Err(ReadError::EOF);
-        }
+    if input.is_eof() {
+        return Err(ReadError::EOF);
+    }
 
+    let mut first_loop = true;
+
+    loop {
         if let Result::Err(ReadError::InvalidUtf8(err)) = input.buffer_at_least(chunk_size) {
             return Err(ReadError::InvalidUtf8(err));
         };
+
+        if input.is_eof() && first_loop {
+            return Err(ReadError::EOF);
+        }
+
+        first_loop = false;
 
         let read = input.read();
 
@@ -29,6 +37,10 @@ pub(super) fn default_consume_until<I: ?Sized + Input>(
         }
 
         unsafe { input.consume(read.len()) };
+
+        if input.is_eof() {
+            return Ok(());
+        }
     }
 }
 
@@ -37,16 +49,23 @@ pub(super) fn default_read_until<I: ?Sized + Input>(
     chunk_size: usize,
     func: impl Fn(char) -> bool,
 ) -> Result<&str> {
+    if input.is_eof() {
+        return Err(ReadError::EOF);
+    }
+
+    let mut first_loop = true;
     let mut count = 0;
 
     loop {
-        if input.is_eof() {
-            return Err(ReadError::EOF);
-        }
-
         if let Result::Err(ReadError::InvalidUtf8(err)) = input.buffer_at_least(chunk_size) {
             return Err(ReadError::InvalidUtf8(err));
         };
+
+        if input.is_eof() && first_loop {
+            return Err(ReadError::EOF);
+        }
+
+        first_loop = false;
 
         let read = input.read();
 

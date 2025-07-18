@@ -30,9 +30,15 @@ impl<'a> Input for StrView<'a> {
 
     #[inline(always)]
     fn buffer_at_least(&mut self, n: usize) -> Result<()> {
-        if n > self.data.len() {
+        if self.data.is_empty() {
+            // We have reached the EOF
+            self.index = EOF_INDEX;
+            Err(ReadError::EOF)
+        } else if n > self.data.len() {
+            // EOF but we haven't reached it yet
             Err(ReadError::EOF)
         } else {
+            // We have enough data
             Ok(())
         }
     }
@@ -55,11 +61,42 @@ impl<'a> Input for StrView<'a> {
 
     #[inline(always)]
     fn peek(&mut self) -> Result<char> {
-        self.data.chars().next().ok_or(ReadError::EOF)
+        self.data.chars().next().ok_or_else(|| {
+            self.index = EOF_INDEX;
+            ReadError::EOF
+        })
     }
 
     #[inline(always)]
     fn trait_obj(&mut self) -> &mut dyn Input {
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{core::trim::TrimWhitespace, trim::Trim};
+
+    use super::*;
+
+    #[test]
+    pub fn whitespace() {
+        let mut view = StrView::new(" \n ");
+
+        assert_eq!(TrimWhitespace.trim(&mut view), Err(ReadError::EOF));
+    }
+
+    #[test]
+    pub fn single_whitespace() {
+        let mut view = StrView::new("\n");
+
+        assert_eq!(TrimWhitespace.trim(&mut view), Err(ReadError::EOF));
+    }
+
+    #[test]
+    pub fn empty() {
+        let mut view = StrView::new("");
+
+        assert_eq!(TrimWhitespace.trim(&mut view), Err(ReadError::EOF));
     }
 }

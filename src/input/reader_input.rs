@@ -86,6 +86,8 @@ impl<R: io::Read, const N: usize> Input for ReaderInput<R, N> {
 
             let mut is_empty = false;
 
+            let mut first_loop = true;
+
             // Filling the buffer
             while self.cursor + n > self.filled {
                 let result = self
@@ -93,10 +95,19 @@ impl<R: io::Read, const N: usize> Input for ReaderInput<R, N> {
                     .read(unsafe { self.buffer.get_unchecked_mut(self.filled..) })
                     .unwrap();
 
+                // EOF because std::io::read returned 0 bytes
                 if result == 0 {
+                    // EOF that we have reached already because of `first_loop`
+                    if first_loop {
+                        self.index = EOF_INDEX;
+                        return Err(ReadError::EOF);
+                    }
+
                     is_empty = true;
                     break;
                 }
+
+                first_loop = false;
 
                 self.filled += result;
             }
@@ -120,7 +131,6 @@ impl<R: io::Read, const N: usize> Input for ReaderInput<R, N> {
             }
 
             if is_empty {
-                self.index = EOF_INDEX;
                 return Err(ReadError::EOF);
             }
         }
