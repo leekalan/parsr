@@ -30,6 +30,7 @@ pub trait IsResolvedToken {
 #[derive(Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum OrderingBehaviour {
     Right { precedence: i8, closed: bool },
+    SoftLeft { precedence: i8 },
     ClosedLeft,
 }
 
@@ -309,6 +310,45 @@ impl<
                             };
 
                             self.stack.push(StackEntry::Ordering(ordering));
+                        }
+                        OrderingBehaviour::SoftLeft { precedence } => {
+                            let result = self.stack.pop_if(|token| {
+                                let last_precedence = match token {
+                                    StackEntry::Resolved(resolved) => {
+                                        match resolved.inner.get_type() {
+                                            TokenType::Precedence {
+                                                precedence: last_precedence,
+                                                associativity,
+                                            } => match associativity {
+                                                Associativity::Left | Associativity::Right => {
+                                                    last_precedence
+                                                }
+                                                Associativity::ClosedRight => return false,
+                                            },
+                                            _ => unreachable!(
+                                                "Stack should only contain precedence tokens!"
+                                            ),
+                                        }
+                                    }
+                                    StackEntry::Ordering(ordering) => {
+                                        match ordering.inner.behaviour() {
+                                            OrderingBehaviour::Right {
+                                                precedence,
+                                                closed: false,
+                                            } => precedence,
+                                            _ => return false,
+                                        }
+                                    }
+                                };
+
+                                last_precedence >= precedence
+                            });
+
+                            if let Some(StackEntry::Resolved(resolved)) = result {
+                                return Some(Ok(resolved));
+                            }
+
+                            self.internal_state = ProcessTokenIteratorState::Pending;
                         }
                         OrderingBehaviour::ClosedLeft => {
                             if let Some(token) = self.stack.pop() {
