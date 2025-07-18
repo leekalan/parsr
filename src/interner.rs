@@ -4,6 +4,15 @@ use gxhash::{HashMap, HashMapExt};
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Id(usize);
 
+impl Id {
+    /// # Safety
+    /// Id's should not be manually created
+    #[inline(always)]
+    pub unsafe fn from_usize(value: usize) -> Id {
+        Id(value)
+    }
+}
+
 #[derive(Default)]
 pub struct Interner {
     // This can be static as index will always be dropped before data is dropped
