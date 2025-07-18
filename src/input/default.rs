@@ -14,18 +14,14 @@ pub(super) fn default_consume_until<I: ?Sized + Input>(
         return Err(ReadError::EOF);
     }
 
-    let mut first_loop = true;
-
     loop {
         if let Result::Err(ReadError::InvalidUtf8(err)) = input.buffer_at_least(chunk_size) {
             return Err(ReadError::InvalidUtf8(err));
         };
 
-        if input.is_eof() && first_loop {
+        if input.is_eof() {
             return Err(ReadError::EOF);
         }
-
-        first_loop = false;
 
         let read = input.read();
 
@@ -37,10 +33,6 @@ pub(super) fn default_consume_until<I: ?Sized + Input>(
         }
 
         unsafe { input.consume(read.len()) };
-
-        if input.is_eof() {
-            return Ok(());
-        }
     }
 }
 
