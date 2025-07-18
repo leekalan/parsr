@@ -13,7 +13,7 @@ dependencies = [
 
 [[package]]
 name = "parsr"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "gxhash",
  "token-precedence",
