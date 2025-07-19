@@ -6,16 +6,21 @@ pub struct Span {
 
 impl Span {
     #[inline(always)]
-    pub fn new(start: usize, end: usize) -> Self {
+    pub const fn new(start: usize, end: usize) -> Self {
         Self { start, end }
     }
 
     #[inline(always)]
-    pub fn from_self_to_other(self, other: Self) -> Self {
+    pub const fn from_self_to_other(self, other: Self) -> Self {
         Self {
             start: self.start,
             end: other.end,
         }
+    }
+
+    #[inline(always)]
+    pub const fn over<T>(self, inner: T) -> Spanned<T> {
+        Spanned { inner, span: self }
     }
 }
 
@@ -33,15 +38,15 @@ pub struct Spanned<T> {
 }
 
 impl<T> Spanned<T> {
-    pub fn default_span(inner: T) -> Self {
+    pub const fn default_span(inner: T) -> Self {
         Self {
             inner,
-            span: Span::default(),
+            span: Span { start: 0, end: 0 },
         }
     }
 
     #[inline(always)]
-    pub fn new(inner: T, span: Span) -> Self {
+    pub const fn new(inner: T, span: Span) -> Self {
         Self { inner, span }
     }
 }

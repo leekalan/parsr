@@ -1,3 +1,5 @@
+use token_precedence::span::Span;
+
 use super::default;
 
 use super::{Input, Result};
@@ -85,6 +87,14 @@ impl<'a, I: ?Sized + Input> CharEntry<'a, I> {
             character: self.character,
         }
     }
+
+    #[inline(always)]
+    pub fn span(&self) -> Span {
+        Span::new(
+            self.input.index(),
+            self.input.index() + self.character.len_utf8(),
+        )
+    }
 }
 
 pub struct Entry<'a, I: ?Sized + Input = dyn Input + 'a> {
@@ -117,5 +127,10 @@ impl<'a, I: ?Sized + Input> Entry<'a, I> {
             input: self.input.trait_obj(),
             size: self.size,
         }
+    }
+
+    #[inline(always)]
+    pub fn span(&self) -> Span {
+        Span::new(self.input.index(), self.input.index() + self.size)
     }
 }
